@@ -1,0 +1,13 @@
+{
+  "name": "envelope",
+  "slug": "2026-10-18_envelope",
+  "kind": "spec",
+  "one_liner": "Worker output envelope: a JSON Schema 2020-12 subset describing what an autonomous worker returns, with a reference stdlib validator and a cross-field discipline engine that refuses self-awarded verification tags, unsupported HIGH findings, and status/finding inconsistencies.",
+  "problem": "Autonomous workers that act on behalf of a human (agents, pipelines, review bots) write back structured results, and the host decides on that return value alone whether to accept, retry, escalate, or roll back. 2026 frontier work consistently names two gaps on that return surface. One: tool-schema contracts validate inputs before the call but not outputs after - mismatches propagate through the agent's reasoning chain unflagged. Two: workers routinely mark their own output verified, which collapses the maker-checker separation that governance regimes (EU AI Act Article 12 logging, OWASP LLM06, enterprise AI governance playbooks) assume exists. envelope ships a small schema for the return value - status, scope, findings, evidence, reasoning_tag, self_audit, timestamp - and a rules engine with the cross-field discipline that catches the real failure modes: a worker that marks status=ok with no checker run, a HIGH finding with no evidence, an iterated reasoning tag without a checker role recorded, a failed status with no findings to justify it. The schema is JSON Schema 2020-12-shaped so standard tooling consumes it; the reference validator is stdlib-only so a reviewer runs it anywhere. This is an independent governance primitive, not affiliated with or endorsed by any named framework or standard.",
+  "language": "python",
+  "test_cmd": "python -m unittest discover -s tests",
+  "build_cmd": "python -m pip install -e .",
+  "deps": [],
+  "license": "Apache-2.0",
+  "clean_room": "The schema shape (status / scope / findings / evidence / reasoning tag / self audit / timestamp) is derived from the governance surface named in public enterprise-AI-governance guidance and the public abstract of arXiv 2609.28216 (From Agent Output to Authorized Transition) and arXiv 2601.20727 (Audit Trails for Accountability in Large Language Models), from the publicly observable JSON Schema 2020-12 vocabulary, and from reasoning-depth-tag discipline documented in public reasoning-model literature (ICLR 2026 'When Thinking LLMs Lie' openreview). The rules engine encodes maker-checker separation named in those sources. No reference implementation (of any named framework, enterprise platform, or paper companion code) was read, vendored, or mirrored."
+}

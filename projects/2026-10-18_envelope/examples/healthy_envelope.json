@@ -1,0 +1,26 @@
+{
+  "envelope_version": "0.1.0",
+  "task_id": "example-task-001",
+  "status": "ok",
+  "scope": {
+    "in": ["inputs/sample.jsonl"],
+    "out": ["outputs/report.md"]
+  },
+  "findings": [],
+  "evidence": [
+    {
+      "claim": "the input file was non-empty and well-formed JSONL",
+      "kind": "file",
+      "ref": "inputs/sample.jsonl",
+      "hash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+    }
+  ],
+  "reasoning_tag": "reasoning-iterated",
+  "self_audit": {
+    "checker_run": true,
+    "checker_role": "reviewer",
+    "verdict": "ok",
+    "reasons": []
+  },
+  "timestamp": "2026-10-18T09:30:00Z"
+}

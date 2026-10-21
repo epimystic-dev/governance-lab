@@ -1,0 +1,10 @@
+{
+  "envelope_version": "0.1.0",
+  "task_id": "example-task-003",
+  "status": "sunny",
+  "findings": "none that I can see",
+  "evidence": [],
+  "reasoning_tag": "normal",
+  "self_audit": {"checker_run": true, "verdict": "ok"},
+  "timestamp": "2026-10-18T09:30:00Z"
+}

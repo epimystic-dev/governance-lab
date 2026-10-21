@@ -1,0 +1,24 @@
+{
+  "envelope_version": "0.1.0",
+  "task_id": "example-task-002",
+  "status": "ok",
+  "scope": {
+    "in": ["inputs/sample.jsonl"],
+    "out": ["outputs/report.md"]
+  },
+  "findings": [
+    {
+      "id": "W-1",
+      "severity": "HIGH",
+      "message": "the input hash does not match the pinned digest"
+    }
+  ],
+  "evidence": [],
+  "reasoning_tag": "iterated",
+  "self_audit": {
+    "checker_run": false,
+    "verdict": "ok",
+    "reasons": ["no checker was configured"]
+  },
+  "timestamp": "yesterday afternoon"
+}

@@ -1,0 +1,104 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://epimystic.dev/governance-lab/envelope-v0.1.0.json",
+  "title": "Worker Output Envelope",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "envelope_version",
+    "task_id",
+    "status",
+    "scope",
+    "findings",
+    "evidence",
+    "reasoning_tag",
+    "self_audit",
+    "timestamp"
+  ],
+  "properties": {
+    "envelope_version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "task_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "status": {
+      "type": "string",
+      "enum": ["ok", "partial", "failed", "blocked"]
+    },
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["in", "out"],
+      "properties": {
+        "in": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1},
+          "minItems": 1
+        },
+        "out": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1},
+          "minItems": 1
+        }
+      }
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "severity", "message"],
+        "properties": {
+          "id": {"type": "string", "minLength": 1},
+          "severity": {"type": "string", "enum": ["HIGH", "MEDIUM", "LOW", "INFO"]},
+          "message": {"type": "string", "minLength": 1},
+          "where": {"type": "string"},
+          "evidence_refs": {
+            "type": "array",
+            "items": {"type": "integer", "minimum": 0}
+          }
+        }
+      }
+    },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["claim", "kind", "ref"],
+        "properties": {
+          "claim": {"type": "string", "minLength": 1},
+          "kind": {"type": "string", "enum": ["cite", "file", "measure", "external"]},
+          "ref": {"type": "string", "minLength": 1},
+          "hash": {"type": "string"}
+        }
+      }
+    },
+    "reasoning_tag": {
+      "type": "string",
+      "enum": ["normal", "reasoning", "iterated", "reasoning-iterated"]
+    },
+    "self_audit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["checker_run", "verdict"],
+      "properties": {
+        "checker_run": {"type": "boolean"},
+        "checker_role": {"type": "string"},
+        "verdict": {"type": "string", "enum": ["ok", "fail", "unknown"]},
+        "reasons": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "timestamp": {
+      "type": "string",
+      "minLength": 10
+    }
+  }
+}

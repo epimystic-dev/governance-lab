@@ -32,8 +32,9 @@ Each folder has its own README, tests and LICENSE; click through for install and
 
 | Tool | What it does | Layer |
 |---|---|---|
+| [`envelope`](projects/2026-10-18_envelope/) | Worker output envelope: JSON Schema 2020-12 subset for a worker's return value, with a stdlib-only reference validator and a twelve-rule cross-field discipline engine that catches self-awarded verification, unsupported HIGH findings, and status / finding inconsistency. | contract |
 
-*The first artifacts arrive on the weekly cycle; the radar publishes every Monday.*
+*The radar publishes every Monday.*
 
 ## How it is made (and what that means)
 
