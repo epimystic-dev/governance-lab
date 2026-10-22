@@ -33,6 +33,7 @@ Each folder has its own README, tests and LICENSE; click through for install and
 | Tool | What it does | Layer |
 |---|---|---|
 | [`envelope`](projects/2026-10-18_envelope/) | Worker output envelope: JSON Schema 2020-12 subset for a worker's return value, with a stdlib-only reference validator and a twelve-rule cross-field discipline engine that catches self-awarded verification, unsupported HIGH findings, and status / finding inconsistency. | contract |
+| [`auditledger`](projects/2026-10-18_auditledger/) | Append-only hash-chained JSONL ledger with `append / verify / digest / head`: one file, every row commits to the previous via SHA-256 over a canonical serialisation, verify localises any tamper to the exact sequence number. | audit-trail |
 
 *The radar publishes every Monday.*
 

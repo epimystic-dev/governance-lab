@@ -1,0 +1,13 @@
+{
+  "name": "auditledger",
+  "slug": "2026-10-18_auditledger",
+  "kind": "cli",
+  "one_liner": "An append-only hash-chained JSONL ledger with append / verify / digest, framed as an audit substrate for agent systems: a single-writer file where every row commits to the previous one so a reviewer can localise tamper to the exact sequence number.",
+  "problem": "Governance regimes for AI agents in 2026 (EU AI Act Article 12 logging, OWASP LLM06, enterprise AI governance playbooks) assume a tamper-evident audit trail of what an agent decided and did, keyed to the exact row where any tampering happened. Multiple independent 2026 implementations converge on the same shape - an append-only JSONL where each line's integrity-hash commits to the previous one via SHA-256 over a canonical serialisation (topcheer/ggcode PR 2472 'tamper-evident hash-chained audit ledger for agent actions', hermes-agent issue 487 feature request, chenhz01/agent-audit-trail, the dev.to 'hash-chained audit logs for AI agent actions, in 40 lines' walk-through) - because the shape is small enough to be correct, verifiable with a stdlib tool, and local-filesystem-friendly. auditledger ships the primitive: a Ledger class with append / verify / digest, a stdlib-only canonical JSON serialiser, and a CLI (init / append / verify / digest / head) that returns rc 0 clean, rc 2 on a broken chain, and names the first row that fails. This is an independent governance primitive, not a cryptographic protocol and not affiliated with or endorsed by any of the named implementations.",
+  "language": "python",
+  "test_cmd": "python -m unittest discover -s tests",
+  "build_cmd": "python -m pip install -e .",
+  "deps": [],
+  "license": "Apache-2.0",
+  "clean_room": "The hash-chain shape (seq / ts / kind / payload / prev / hash, with hash = sha256(canonical({seq, ts, kind, payload, prev}))) is a converged pattern described in multiple public sources: topcheer/ggcode PR 2472 abstract, hermes-agent issue 487 feature request, chenhz01/agent-audit-trail README, and the dev.to walk-through 'hash-chained audit logs for AI agent actions, in 40 lines'. The canonical JSON encoding (sorted keys, no whitespace, ensure_ascii=False) is the publicly observable Python stdlib json.dumps parameterisation. No reference implementation from any named repository was read, vendored, or mirrored."
+}

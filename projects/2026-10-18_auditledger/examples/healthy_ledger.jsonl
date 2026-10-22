@@ -1,0 +1,3 @@
+{"hash":"654ffa7307d9eb52912304c5c857c392c81953bbb29b15fe83b0685a7f8fe6c9","kind":"boot","payload":{"env":"staging","host":"worker-a"},"prev":"0000000000000000000000000000000000000000000000000000000000000000","seq":0,"ts":"2026-10-18T09:30:00Z"}
+{"hash":"a425b38f1226b7e369ae1e6e1ed169ab7dd302fc8ae94d9540059691638f95e2","kind":"tool-call","payload":{"args_hash":"sha256:abcd1234","tool":"read_record"},"prev":"654ffa7307d9eb52912304c5c857c392c81953bbb29b15fe83b0685a7f8fe6c9","seq":1,"ts":"2026-10-18T09:30:01Z"}
+{"hash":"f3b349562633d8018b3073b978f0a1c93e919d7942ad6e4f99cf7b513485d3a9","kind":"decision","payload":{"action":"approve","reason":"input matched policy"},"prev":"a425b38f1226b7e369ae1e6e1ed169ab7dd302fc8ae94d9540059691638f95e2","seq":2,"ts":"2026-10-18T09:30:02Z"}
