@@ -183,6 +183,17 @@ def verify(path: str) -> ScanResult:
                 ))
                 break
 
+            extra = sorted(k for k in obj if k not in _REQUIRED_FIELDS)
+            if extra:
+                findings.append(Finding(
+                    rule_id="AL-010",
+                    severity=Severity.MEDIUM,
+                    message=f"row has unknown extra field(s): "
+                            f"{', '.join(extra)}",
+                    seq=obj.get("seq"),
+                    line_number=lineno,
+                ))
+
             seq = obj["seq"]
             ts = obj["ts"]
             kind = obj["kind"]

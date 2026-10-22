@@ -102,6 +102,17 @@ ALL_RULES: List[Rule] = [
             "it is a defect the author would want to see."
         ),
     ),
+    Rule(
+        id="AL-010",
+        severity=Severity.MEDIUM,
+        title="row has unknown extra top-level fields",
+        description=(
+            "hash commits only to seq / ts / kind / payload / prev; "
+            "any extra top-level field is not covered by the chain "
+            "and is therefore a silent tamper surface. The row shape "
+            "is defined as exactly those six fields plus hash."
+        ),
+    ),
 ]
 
 

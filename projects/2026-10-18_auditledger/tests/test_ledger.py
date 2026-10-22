@@ -254,6 +254,40 @@ class VerifyTamperLocalisationTests(unittest.TestCase):
         res = verify(p)
         self.assertIn("AL-009", self._ids(res))
 
+    def test_AL_010_extra_field_detected(self):
+        # hash commits only to {seq, ts, kind, payload, prev}, so an
+        # extra top-level field is a silent tamper surface the chain
+        # alone will not catch. AL-010 closes that gap. The row's
+        # existing hash is left intact: this is the exact attack it
+        # defends against.
+        p = self._three_row_ledger()
+        row = read_row(p, 1)
+        row["malicious_extra"] = "injected"
+        rewrite_line(p, 1, json.dumps(row, sort_keys=True,
+                                      separators=(",", ":")))
+        res = verify(p)
+        ids = self._ids(res)
+        self.assertIn("AL-010", ids)
+        self.assertNotIn("AL-006", ids)  # chain itself is intact
+        hit = next(f for f in res.findings if f.rule_id == "AL-010")
+        self.assertEqual(hit.seq, 1)
+        self.assertEqual(hit.line_number, 2)
+        self.assertIn("malicious_extra", hit.message)
+        self.assertEqual(res.entries_checked, 3)  # walk continues
+        self.assertEqual(res.verdict, Verdict.NEEDS_ATTENTION)
+
+    def test_AL_010_multiple_extras_listed_sorted(self):
+        p = self._three_row_ledger()
+        row = read_row(p, 0)
+        row["zeta"] = 1
+        row["alpha"] = 2
+        rewrite_line(p, 0, json.dumps(row, sort_keys=True,
+                                      separators=(",", ":")))
+        res = verify(p)
+        hit = next(f for f in res.findings if f.rule_id == "AL-010")
+        # Field names appear in sorted order so the message is stable.
+        self.assertIn("alpha, zeta", hit.message)
+
 
 class LedgerFacade(unittest.TestCase):
     def test_facade_round_trip(self):
