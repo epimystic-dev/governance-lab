@@ -259,6 +259,45 @@ class ENV012_UnknownEnvelopeVersion(unittest.TestCase):
         self.assertNotIn("ENV-012", scan_rule_ids(healthy()))
 
 
+class ENV013_VerdictOkOrFailRequiresCheckerRun(unittest.TestCase):
+    def test_fires_on_verdict_ok_without_checker(self):
+        # The gap this rule closes: a document with status=partial and
+        # reasoning_tag=normal lets ENV-001 and ENV-002 pass, so without
+        # ENV-013 a verdict of 'ok' with checker_run=false would score
+        # HEALTHY despite the verdict being self-awarded.
+        env = healthy()
+        env["status"] = "partial"
+        env["reasoning_tag"] = "normal"
+        env["self_audit"]["checker_run"] = False
+        env["self_audit"]["verdict"] = "ok"
+        del env["self_audit"]["checker_role"]
+        self.assertIn("ENV-013", scan_rule_ids(env))
+
+    def test_fires_on_verdict_fail_without_checker(self):
+        env = healthy()
+        env["status"] = "failed"
+        env["reasoning_tag"] = "normal"
+        env["self_audit"]["checker_run"] = False
+        env["self_audit"]["verdict"] = "fail"
+        del env["self_audit"]["checker_role"]
+        env["findings"] = [
+            {"id": "F-1", "severity": "HIGH", "message": "boom"}
+        ]  # satisfy ENV-005
+        self.assertIn("ENV-013", scan_rule_ids(env))
+
+    def test_silent_on_verdict_unknown_without_checker(self):
+        env = healthy()
+        env["status"] = "partial"
+        env["reasoning_tag"] = "normal"
+        env["self_audit"]["checker_run"] = False
+        env["self_audit"]["verdict"] = "unknown"
+        del env["self_audit"]["checker_role"]
+        self.assertNotIn("ENV-013", scan_rule_ids(env))
+
+    def test_silent_on_verdict_ok_with_checker(self):
+        self.assertNotIn("ENV-013", scan_rule_ids(healthy()))
+
+
 class VerdictRollup(unittest.TestCase):
     def test_healthy(self):
         self.assertEqual(scan(healthy()).verdict, Verdict.HEALTHY)

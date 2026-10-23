@@ -155,6 +155,19 @@ ALL_RULES: List[Rule] = [
             "signals that THIS validator cannot speak for it."
         ),
     ),
+    Rule(
+        id="ENV-013",
+        severity=Severity.HIGH,
+        title="self_audit.verdict ok or fail requires checker_run=true",
+        description=(
+            "A verdict of ok or fail is a judgement only a checker "
+            "can make. If checker_run is false, the only consistent "
+            "verdict is unknown. ok or fail with checker_run=false "
+            "is a self-awarded verdict with no corresponding check. "
+            "Parallel to ENV-002 (iterated reasoning tag) at the "
+            "self_audit layer."
+        ),
+    ),
 ]
 
 
@@ -332,6 +345,15 @@ def scan(envelope: Dict[str, Any]) -> ScanResult:
                              "recognised by this validator "
                              f"(known: {sorted(_KNOWN_VERSIONS)})",
                              "envelope_version"))
+
+    # ENV-013
+    if audit_verdict in ("ok", "fail") and not checker_run:
+        findings.append(_hit("ENV-013",
+                             f"self_audit.verdict={audit_verdict!r} but "
+                             "self_audit.checker_run=false; "
+                             "the verdict is self-awarded with no "
+                             "corresponding check",
+                             "self_audit"))
 
     return ScanResult(findings=findings, verdict=rollup(findings))
 
