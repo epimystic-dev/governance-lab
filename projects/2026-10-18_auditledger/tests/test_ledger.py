@@ -288,6 +288,76 @@ class VerifyTamperLocalisationTests(unittest.TestCase):
         # Field names appear in sorted order so the message is stable.
         self.assertIn("alpha, zeta", hit.message)
 
+    def test_AL_011_string_seq_does_not_crash_walker(self):
+        # Before AL-011, a row with a JSON-string seq crashed verify()
+        # with TypeError on seq + 1 at the end of the row loop, taking
+        # down the whole walk. The hostile ledger here recomputes the
+        # row hash so the chain itself is intact; only the seq-type
+        # rule can catch it.
+        p = self._three_row_ledger()
+        row = read_row(p, 1)
+        row["seq"] = "notanint"
+        from auditledger.canonical import canonical_bytes
+        import hashlib
+        core = {k: row[k] for k in
+                ("seq", "ts", "kind", "payload", "prev")}
+        row["hash"] = hashlib.sha256(canonical_bytes(core)).hexdigest()
+        rewrite_line(p, 1, json.dumps(row, sort_keys=True,
+                                      separators=(",", ":")))
+        res = verify(p)
+        ids = self._ids(res)
+        self.assertIn("AL-011", ids)
+        self.assertNotIn("AL-004", ids)  # AL-011 subsumes AL-004 here
+        hit = next(f for f in res.findings if f.rule_id == "AL-011")
+        self.assertEqual(hit.line_number, 2)
+        self.assertIn("notanint", hit.message)
+        self.assertEqual(res.verdict, Verdict.UNHEALTHY)
+        self.assertEqual(res.entries_checked, 3)  # walk continues
+
+    def test_AL_011_null_seq_does_not_crash_walker(self):
+        p = self._three_row_ledger()
+        row = read_row(p, 1)
+        row["seq"] = None
+        from auditledger.canonical import canonical_bytes
+        import hashlib
+        core = {k: row[k] for k in
+                ("seq", "ts", "kind", "payload", "prev")}
+        row["hash"] = hashlib.sha256(canonical_bytes(core)).hexdigest()
+        rewrite_line(p, 1, json.dumps(row, sort_keys=True,
+                                      separators=(",", ":")))
+        res = verify(p)
+        self.assertIn("AL-011", self._ids(res))
+        self.assertEqual(res.entries_checked, 3)
+
+    def test_AL_011_negative_seq(self):
+        # A negative seq is syntactically an integer and would pass the
+        # old guard but still breaks the +1-per-row invariant.
+        p = self._three_row_ledger()
+        row = read_row(p, 1)
+        row["seq"] = -1
+        from auditledger.canonical import canonical_bytes
+        import hashlib
+        core = {k: row[k] for k in
+                ("seq", "ts", "kind", "payload", "prev")}
+        row["hash"] = hashlib.sha256(canonical_bytes(core)).hexdigest()
+        rewrite_line(p, 1, json.dumps(row, sort_keys=True,
+                                      separators=(",", ":")))
+        res = verify(p)
+        self.assertIn("AL-011", self._ids(res))
+
+    def test_AL_011_bool_seq_is_rejected(self):
+        # bool is an int subclass; without the explicit guard, seq=true
+        # compares equal to seq=1 and slips past AL-004. The hash check
+        # also fires here (canonical encoding of True is "true", not
+        # "1"), but AL-011 is the rule that names the shape defect.
+        p = self._three_row_ledger()
+        row = read_row(p, 1)
+        row["seq"] = True
+        rewrite_line(p, 1, json.dumps(row, sort_keys=True,
+                                      separators=(",", ":")))
+        res = verify(p)
+        self.assertIn("AL-011", self._ids(res))
+
 
 class LedgerFacade(unittest.TestCase):
     def test_facade_round_trip(self):

@@ -113,6 +113,18 @@ ALL_RULES: List[Rule] = [
             "is defined as exactly those six fields plus hash."
         ),
     ),
+    Rule(
+        id="AL-011",
+        severity=Severity.HIGH,
+        title="seq is not a non-negative integer",
+        description=(
+            "seq must be a JSON integer >= 0; booleans and other "
+            "numeric subclasses are rejected. A string, null, float "
+            "or negative seq cannot carry the +1-per-row invariant "
+            "that AL-004 depends on, and would otherwise crash the "
+            "walker on seq + 1 arithmetic."
+        ),
+    ),
 ]
 
 

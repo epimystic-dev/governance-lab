@@ -118,6 +118,7 @@ The canonical encoding is Python stdlib `json.dumps` with `sort_keys=True`,
 | `AL-008` | MEDIUM | `hash` or `prev` is not a 64-char lowercase hex string |
 | `AL-009` | MEDIUM | `kind` is empty or not a string |
 | `AL-010` | MEDIUM | row has unknown extra top-level fields |
+| `AL-011` | HIGH | `seq` is not a non-negative integer |
 
 ## Honest scope
 

@@ -201,7 +201,24 @@ def verify(path: str) -> ScanResult:
             prev = obj["prev"]
             h = obj["hash"]
 
-            if seq != expected_seq:
+            # bool is an int subclass in Python; reject it so a row
+            # that writes seq=true cannot slip past AL-004 by comparing
+            # equal to 1.
+            seq_is_valid_int = (
+                isinstance(seq, int)
+                and not isinstance(seq, bool)
+                and seq >= 0
+            )
+            if not seq_is_valid_int:
+                findings.append(Finding(
+                    rule_id="AL-011",
+                    severity=Severity.HIGH,
+                    message=f"seq {seq!r} is not a non-negative "
+                            f"integer",
+                    seq=seq if seq_is_valid_int else None,
+                    line_number=lineno,
+                ))
+            elif seq != expected_seq:
                 findings.append(Finding(
                     rule_id="AL-004",
                     severity=Severity.HIGH,
@@ -294,7 +311,13 @@ def verify(path: str) -> ScanResult:
 
             checked += 1
             expected_prev = h if isinstance(h, str) else ZERO_HASH
-            expected_seq = seq + 1
+            # If seq was wrong-typed (AL-011 fired), advance by the
+            # expected position instead of attempting seq + 1, which
+            # would raise on a string or null seq.
+            if seq_is_valid_int:
+                expected_seq = seq + 1
+            else:
+                expected_seq = expected_seq + 1
             head_hash = expected_prev if isinstance(h, str) else head_hash
 
     return ScanResult(
