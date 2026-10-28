@@ -298,6 +298,65 @@ class ENV013_VerdictOkOrFailRequiresCheckerRun(unittest.TestCase):
         self.assertNotIn("ENV-013", scan_rule_ids(healthy()))
 
 
+class ENV014_VerdictFailRequiresReasons(unittest.TestCase):
+    def _base_failing_env(self):
+        # A reviewer-attested fail: checker ran, verdict=fail. ENV-013
+        # is satisfied by checker_run=true; ENV-005 is satisfied by one
+        # MEDIUM/HIGH finding; evidence is present so ENV-003/ENV-008
+        # are silent. The reasons[] gap is the only remaining defect.
+        env = healthy()
+        env["status"] = "failed"
+        env["reasoning_tag"] = "reasoning"
+        env["self_audit"]["verdict"] = "fail"
+        env["self_audit"]["reasons"] = []
+        env["findings"] = [
+            {"id": "F-1", "severity": "HIGH",
+             "message": "the checker found something to fail on"}
+        ]
+        env["evidence"].append({
+            "claim": "the artefact under review was inspected",
+            "kind": "file", "ref": "outputs/report.md",
+        })
+        return env
+
+    def test_fires_on_fail_with_empty_reasons(self):
+        env = self._base_failing_env()
+        self.assertIn("ENV-014", scan_rule_ids(env))
+
+    def test_fires_on_fail_with_missing_reasons_key(self):
+        env = self._base_failing_env()
+        del env["self_audit"]["reasons"]
+        self.assertIn("ENV-014", scan_rule_ids(env))
+
+    def test_fires_on_fail_with_malformed_reasons_container(self):
+        # A reasons field that is not a list is coerced to [] by the
+        # defensive layer at the top of scan(); the rule should still
+        # fire so the gap stays localised.
+        env = self._base_failing_env()
+        env["self_audit"]["reasons"] = "not a list"
+        self.assertIn("ENV-014", scan_rule_ids(env))
+
+    def test_silent_on_fail_with_reasons(self):
+        env = self._base_failing_env()
+        env["self_audit"]["reasons"] = ["the input was corrupted mid-run"]
+        self.assertNotIn("ENV-014", scan_rule_ids(env))
+
+    def test_silent_on_verdict_unknown_with_empty_reasons(self):
+        # unknown is an "I did not determine" verdict; reasons may be
+        # empty without ENV-014 firing. ENV-004 governs verdict=ok.
+        env = healthy()
+        env["status"] = "partial"
+        env["reasoning_tag"] = "reasoning"
+        env["self_audit"]["verdict"] = "unknown"
+        env["self_audit"]["reasons"] = []
+        self.assertNotIn("ENV-014", scan_rule_ids(env))
+
+    def test_silent_on_verdict_ok_with_empty_reasons(self):
+        # Healthy envelope has verdict=ok and reasons=[]. ENV-014 must
+        # not fire on that or every healthy envelope would be flagged.
+        self.assertNotIn("ENV-014", scan_rule_ids(healthy()))
+
+
 class VerdictRollup(unittest.TestCase):
     def test_healthy(self):
         self.assertEqual(scan(healthy()).verdict, Verdict.HEALTHY)

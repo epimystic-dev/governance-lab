@@ -130,6 +130,7 @@ Enums:
 | `ENV-011` | LOW | finding `evidence_refs` point outside the `evidence` array |
 | `ENV-012` | MEDIUM | `envelope_version` is not a version this validator recognises |
 | `ENV-013` | HIGH | `self_audit.verdict=ok` or `fail` requires `checker_run=true` |
+| `ENV-014` | HIGH | `self_audit.verdict=fail` requires at least one entry in `reasons[]` |
 
 Rule bodies live in `envelope/rules.py`; the registry is `envelope.ALL_RULES`.
 
@@ -138,7 +139,7 @@ Rule bodies live in `envelope/rules.py`; the registry is `envelope.ALL_RULES`.
 What this does:
 
 - Validates envelope shape against the shipped JSON Schema 2020-12 document.
-- Flags thirteen named cross-field inconsistencies by rule id.
+- Flags fourteen named cross-field inconsistencies by rule id.
 - Prints an ASCII-safe text report (non-ASCII rendered as `<U+XXXX>`) or a JSON report.
 
 What this does not do:

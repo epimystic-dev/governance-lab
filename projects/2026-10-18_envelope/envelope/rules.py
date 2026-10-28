@@ -168,6 +168,21 @@ ALL_RULES: List[Rule] = [
             "self_audit layer."
         ),
     ),
+    Rule(
+        id="ENV-014",
+        severity=Severity.HIGH,
+        title="self_audit.verdict=fail requires at least one reason",
+        description=(
+            "A checker that reports fail must record what failed. A "
+            "fail verdict with an empty or missing reasons array is "
+            "undetectable from an ok verdict by downstream automation "
+            "(status, severity rollup, downstream gating all look at "
+            "the same shape and see nothing). Parallel to ENV-005 "
+            "(status=failed requires a MEDIUM or HIGH finding) at the "
+            "self_audit layer; ENV-004 handles the inverse (ok with "
+            "non-empty reasons)."
+        ),
+    ),
 ]
 
 
@@ -353,6 +368,15 @@ def scan(envelope: Dict[str, Any]) -> ScanResult:
                              "self_audit.checker_run=false; "
                              "the verdict is self-awarded with no "
                              "corresponding check",
+                             "self_audit"))
+
+    # ENV-014
+    if audit_verdict == "fail" and not audit_reasons:
+        findings.append(_hit("ENV-014",
+                             "self_audit.verdict='fail' but "
+                             "self_audit.reasons is empty; "
+                             "a fail verdict with no reasons is "
+                             "undetectable from an ok verdict",
                              "self_audit"))
 
     return ScanResult(findings=findings, verdict=rollup(findings))
