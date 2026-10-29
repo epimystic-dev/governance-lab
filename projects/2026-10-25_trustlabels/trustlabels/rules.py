@@ -8,7 +8,7 @@ passed through.
 
 Rules
 -----
-Twelve rules under the prefix ``TL-``. Each one is documented in the
+Thirteen rules under the prefix ``TL-``. Each one is documented in the
 project README; the shared contract test asserts every registry id
 appears there.
 """
@@ -165,6 +165,24 @@ ALL_RULES: List[Rule] = [
             "Provenance without a source is unfalsifiable."
         ),
     ),
+    Rule(
+        id="TL-013",
+        severity=Severity.HIGH,
+        title="promotion target is still a hazard level",
+        description=(
+            "A quarantined or untrusted entry used as "
+            "grounds_for_action declares a complete and valid "
+            "promotion whose target is itself a quarantined:* or "
+            "untrusted:* level. The taxonomy allows staged "
+            "promotions (e.g. untrusted:unknown -> quarantined:web "
+            "via automated-triage) as an intermediate step, not as "
+            "a hazard-clearing one; the entry must be promoted "
+            "further to a non-hazard level (trusted:* or "
+            "observed:*) before use as grounds. Without this rule, "
+            "a single-step mid-chain promotion silently escapes "
+            "TL-001 / TL-009."
+        ),
+    ),
 ]
 
 
@@ -293,6 +311,30 @@ def scan(bundle: Any) -> ScanResult:
                     f"promote via a gate before using as grounds",
                     where,
                 ))
+
+        # TL-013: hazard-level entry used as grounds via a
+        # complete-and-valid promotion whose target is itself a
+        # hazard level. The taxonomy allows untrusted:unknown ->
+        # quarantined:web via automated-triage as a staged step; a
+        # single-step claim stops short of a non-hazard level and
+        # must not waive TL-001 / TL-009 when the target is still
+        # quarantined:* or untrusted:*.
+        if (
+            isinstance(label, str)
+            and (is_quarantined(label) or is_untrusted(label))
+            and grounds is True
+            and _promotion_is_complete(label, e)
+            and isinstance(promoted_to, str)
+            and (is_quarantined(promoted_to) or is_untrusted(promoted_to))
+        ):
+            findings.append(_hit(
+                "TL-013",
+                f"entry {_q(eid)} is grounds_for_action with promotion "
+                f"{_q(label)} -> {_q(promoted_to)}; target is still a "
+                f"hazard level, promote to trusted:* or observed:* "
+                f"before use as grounds",
+                where,
+            ))
 
         # TL-002: promotion recorded without a gate.
         if promoted_to:

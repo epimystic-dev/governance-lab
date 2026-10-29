@@ -2,7 +2,7 @@
 
 **Trust-label taxonomy and transition-matrix linter** for the provenance of content
 entering an AI agent's reasoning context. One file; a nine-label taxonomy; a seven-edge
-promotion matrix; twelve rules under `TL-NNN` that refuse the real injection paths - a
+promotion matrix; thirteen rules under `TL-NNN` that refuse the real injection paths - a
 quarantined entry grounding an action, an untrusted entry grounding an action, a promotion
 recorded without a gate, a declared promotion the taxonomy does not permit.
 
@@ -153,6 +153,7 @@ Any pair outside this matrix is flagged `TL-003`.
 | `TL-010` | HIGH | `promotion_gate` is not valid for this transition |
 | `TL-011` | LOW | duplicate entry `id` in bundle |
 | `TL-012` | MEDIUM | observed or quarantined entry has no `source_ref` |
+| `TL-013` | HIGH | promotion target is still a hazard level (staged mid-chain promotion used as grounds) |
 
 A "complete and valid promotion" for `TL-001` / `TL-009` means all three of `promoted_to`,
 `promoted_by`, and `promotion_gate` are present, the current-label-to-target transition
@@ -162,6 +163,14 @@ promotion that `TL-002` reports structurally; `TL-001` / `TL-009` still fire so 
 semantic signal (quarantined / untrusted content used as grounds) is not lost under the
 structural one.
 
+A promotion is only *hazard-clearing* when the target itself is a non-hazard level
+(`trusted:*` or `observed:*`). The taxonomy allows staged promotions such as
+`untrusted:unknown -> quarantined:web` via `automated-triage` as an intermediate
+step; those are structurally valid (so `TL-001` / `TL-009` are silent) but still
+leave the entry at a quarantined / untrusted level. `TL-013` fires on such entries
+when they are used as grounds, so a single-step mid-chain promotion cannot silently
+waive the hazard rules.
+
 Rule bodies live in `trustlabels/rules.py`; the registry is `trustlabels.ALL_RULES`.
 
 ## Honest scope
@@ -170,7 +179,7 @@ What this does:
 
 - Validates bundle shape (list of entries or object with `entries`, each entry has `id`
   and `trust_label`).
-- Flags twelve named cross-field inconsistencies by rule id.
+- Flags thirteen named cross-field inconsistencies by rule id.
 - Prints an ASCII-safe text report (non-ASCII rendered as `<U+XXXX>`) or a JSON report.
 
 What this does not do:

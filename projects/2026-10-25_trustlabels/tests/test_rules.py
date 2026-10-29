@@ -321,6 +321,90 @@ class TL012_ObservedOrQuarantinedWithoutSource(unittest.TestCase):
         self.assertNotIn("TL-012", scan_rule_ids_for_entry(e))
 
 
+class TL013_PromotionTargetIsHazardLevel(unittest.TestCase):
+    def test_fires_on_untrusted_to_quarantined_laundering(self):
+        # The attack: an untrusted:unknown entry claims a complete
+        # and valid single-step promotion to quarantined:web via the
+        # automated-triage gate (which the matrix accepts). TL-003 and
+        # TL-010 are silent because the transition and gate are valid;
+        # TL-009 is silent because _promotion_is_complete returns True.
+        # Pre-fix: HEALTHY. Post-fix: TL-013 localises the hazard-level
+        # target so the mid-chain laundering is visible.
+        e = mutate_entry(
+            id="u1", trust_label="untrusted:unknown",
+            source_ref="unknown://x",
+            grounds_for_action=True,
+            promoted_to="quarantined:web",
+            promoted_by="triage-bot",
+            promotion_gate="automated-triage",
+        )
+        ids = scan_rule_ids_for_entry(e)
+        self.assertIn("TL-013", ids)
+        self.assertNotIn("TL-009", ids)
+        self.assertNotIn("TL-003", ids)
+        self.assertNotIn("TL-010", ids)
+
+    def test_quiet_on_untrusted_to_observed_hazard_cleared(self):
+        # untrusted:derived -> observed:tool via automated-sanitizer is
+        # the other staged promotion in the matrix, but observed:* is a
+        # non-hazard target, so TL-013 must stay silent.
+        e = mutate_entry(
+            id="u2", trust_label="untrusted:derived",
+            source_ref="tool://x/raw",
+            grounds_for_action=True,
+            promoted_to="observed:tool",
+            promoted_by="sanitizer-1",
+            promotion_gate="automated-sanitizer",
+        )
+        ids = scan_rule_ids_for_entry(e)
+        self.assertNotIn("TL-013", ids)
+        self.assertNotIn("TL-009", ids)
+
+    def test_quiet_on_quarantined_to_trusted_hazard_cleared(self):
+        # Canonical reviewer promotion. Target is trusted:audited, a
+        # non-hazard level, so TL-013 stays silent.
+        e = mutate_entry(
+            id="q1", trust_label="quarantined:web",
+            grounds_for_action=True,
+            promoted_to="trusted:audited",
+            promoted_by="reviewer-1",
+            promotion_gate="reviewer",
+        )
+        ids = scan_rule_ids_for_entry(e)
+        self.assertNotIn("TL-013", ids)
+        self.assertNotIn("TL-001", ids)
+
+    def test_quiet_when_grounds_is_false(self):
+        # The target is hazard-level, but the entry is not used as
+        # grounds. TL-013 is a grounds-only rule.
+        e = mutate_entry(
+            id="u3", trust_label="untrusted:unknown",
+            source_ref="unknown://y",
+            grounds_for_action=False,
+            promoted_to="quarantined:web",
+            promoted_by="triage-bot",
+            promotion_gate="automated-triage",
+        )
+        self.assertNotIn("TL-013", scan_rule_ids_for_entry(e))
+
+    def test_quiet_when_promotion_incomplete(self):
+        # Promotion is not complete (missing promoted_by). TL-009 is the
+        # right primary signal here; TL-013 presupposes a complete and
+        # valid promotion and must stay silent so the two rules do not
+        # double-report on the same semantic layer.
+        e = mutate_entry(
+            id="u4", trust_label="untrusted:unknown",
+            source_ref="unknown://z",
+            grounds_for_action=True,
+            promoted_to="quarantined:web",
+            promoted_by=None,
+            promotion_gate="automated-triage",
+        )
+        ids = scan_rule_ids_for_entry(e)
+        self.assertIn("TL-009", ids)
+        self.assertNotIn("TL-013", ids)
+
+
 class HealthyBundleHasNoFindings(unittest.TestCase):
     def test_canonical_healthy_bundle_is_clean(self):
         ids = scan_rule_ids(healthy())
