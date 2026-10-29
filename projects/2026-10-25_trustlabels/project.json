@@ -1,0 +1,13 @@
+{
+  "name": "trustlabels",
+  "slug": "2026-10-25_trustlabels",
+  "kind": "linter",
+  "one_liner": "A linter and library for the taxonomy and promotion matrix of trust labels on content entering an AI agent's reasoning context: catches quarantined and untrusted entries used as grounds for action, self-awarded promotions, unreachable promotion targets, and missing provenance.",
+  "problem": "Prompt-injection surveys published in 2026 (The Landscape of Prompt Injection Threats in LLM Agents, Composable Trust for Language Models, A Trust Layer for Agent Evaluation, the DigitalApplied 2026 production-agents taxonomy, the CSA Labs MCP Tool Poisoning note) converge on the same structural claim: injection succeeds because there is no shared, enforceable discipline about the provenance of content a model sees. 9 of 10 production attack classes arrive through trusted channels - retrieved documents, tool outputs, memory stores, email bodies, collaborating subagents. MCP in particular ships 'no envelope marking tool descriptions as data-not-instructions.' The missing piece is a small, run-and-verify taxonomy: a fixed set of trust labels, a transition matrix that names the only valid promotions (quarantined to trusted-audited through a named reviewer; untrusted-derived to observed-tool through a named sanitizer), and a linter that refuses any entry used as grounds for action unless its label and promotion history justify it. trustlabels ships that primitive: a nine-label taxonomy, a seven-edge transition matrix, and twelve rules under TL-NNN that catch the real failure modes a reviewer must see.",
+  "language": "python",
+  "test_cmd": "python -m unittest discover -s tests",
+  "build_cmd": "python -m pip install -e .",
+  "deps": [],
+  "license": "Apache-2.0",
+  "clean_room": "The taxonomy shape (level + qualifier, with level in {trusted, observed, quarantined, untrusted}) is a converged pattern described in multiple public 2026 sources: arXiv 2602.10453 'The Landscape of Prompt Injection Threats in LLM Agents' taxonomy, arXiv 2607.13149 'Composable Trust for Language Models', arXiv 2610.07274 'A Trust Layer for Agent Evaluation', the DigitalApplied blog 'Prompt Injection in Production Agents: 2026 Taxonomy' (10 attack classes mapping to OWASP LLM01 and Agentic Top 10 T1/T6), and the CSA Labs 2026-07-01 research note 'MCP Attack Surface: Tool Poisoning and IDE Auto-Execution'. The promotion-matrix shape (named gate per transition) follows the maker-checker discipline named in those same sources. No reference implementation from any named repository was read, vendored, or mirrored."
+}

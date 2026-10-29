@@ -1,0 +1,44 @@
+{
+  "entries": [
+    {
+      "id": "sys/prompt-A",
+      "trust_label": "trusted:system",
+      "source_ref": "pkg://host/system_prompt.md",
+      "grounds_for_action": true,
+      "entered_at": "2026-10-25T09:00:00Z",
+      "promoted_to": null,
+      "promoted_by": null,
+      "promotion_gate": null
+    },
+    {
+      "id": "web/doc-1",
+      "trust_label": "quarantined:web",
+      "source_ref": "https://example.com/docs/intro",
+      "grounds_for_action": false,
+      "entered_at": "2026-10-25T09:05:00Z",
+      "promoted_to": null,
+      "promoted_by": null,
+      "promotion_gate": null
+    },
+    {
+      "id": "web/doc-2",
+      "trust_label": "quarantined:web",
+      "source_ref": "https://example.com/docs/vetted",
+      "grounds_for_action": true,
+      "entered_at": "2026-10-25T09:10:00Z",
+      "promoted_to": "trusted:audited",
+      "promoted_by": "reviewer-1",
+      "promotion_gate": "reviewer"
+    },
+    {
+      "id": "tool/output-1",
+      "trust_label": "untrusted:derived",
+      "source_ref": "tool://web_search/raw",
+      "grounds_for_action": false,
+      "entered_at": "2026-10-25T09:15:00Z",
+      "promoted_to": "observed:tool",
+      "promoted_by": "sanitizer-v2",
+      "promotion_gate": "automated-sanitizer"
+    }
+  ]
+}
