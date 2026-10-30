@@ -405,6 +405,79 @@ class TL013_PromotionTargetIsHazardLevel(unittest.TestCase):
         self.assertNotIn("TL-013", ids)
 
 
+class TL014_GroundsForActionNotBoolean(unittest.TestCase):
+    def test_fires_on_truthy_string(self):
+        # The attack: a quarantined entry sets grounds_for_action to a
+        # truthy string. TL-001 is silent (grounds is True fails on a
+        # non-bool); TL-008 is silent (field present). Pre-fix: HEALTHY.
+        # Post-fix: TL-014 localises the type violation at HIGH.
+        e = mutate_entry(
+            id="x", trust_label="quarantined:web",
+            grounds_for_action="yes",
+        )
+        ids = scan_rule_ids_for_entry(e)
+        self.assertIn("TL-014", ids)
+        self.assertNotIn("TL-001", ids)
+        self.assertNotIn("TL-008", ids)
+
+    def test_fires_on_integer(self):
+        e = mutate_entry(
+            id="x", trust_label="quarantined:web",
+            grounds_for_action=1,
+        )
+        ids = scan_rule_ids_for_entry(e)
+        self.assertIn("TL-014", ids)
+        # TL-001 does not fire: 1 is not True under strict `is True`.
+        self.assertNotIn("TL-001", ids)
+
+    def test_fires_on_null(self):
+        # Null is not a boolean. The key is present, so TL-008 (missing)
+        # does not fire; TL-014 does.
+        e = mutate_entry(
+            id="x", trust_label="quarantined:web",
+            grounds_for_action=None,
+        )
+        ids = scan_rule_ids_for_entry(e)
+        self.assertIn("TL-014", ids)
+        self.assertNotIn("TL-008", ids)
+
+    def test_fires_on_list(self):
+        e = mutate_entry(
+            id="x", trust_label="quarantined:web",
+            grounds_for_action=["grounds"],
+        )
+        self.assertIn("TL-014", scan_rule_ids_for_entry(e))
+
+    def test_fires_on_dict(self):
+        e = mutate_entry(
+            id="x", trust_label="quarantined:web",
+            grounds_for_action={"maybe": True},
+        )
+        self.assertIn("TL-014", scan_rule_ids_for_entry(e))
+
+    def test_quiet_on_boolean_true(self):
+        e = mutate_entry(
+            trust_label="trusted:system",
+            source_ref="pkg://host/s.md",
+            grounds_for_action=True,
+        )
+        self.assertNotIn("TL-014", scan_rule_ids_for_entry(e))
+
+    def test_quiet_on_boolean_false(self):
+        e = mutate_entry(grounds_for_action=False)
+        self.assertNotIn("TL-014", scan_rule_ids_for_entry(e))
+
+    def test_quiet_when_field_missing(self):
+        # TL-008 covers the missing-field case at LOW. TL-014 must not
+        # double-fire there; the two rules partition the ways the field
+        # can be non-declarative.
+        e = mutate_entry()
+        del e["grounds_for_action"]
+        ids = scan_rule_ids_for_entry(e)
+        self.assertNotIn("TL-014", ids)
+        self.assertIn("TL-008", ids)
+
+
 class HealthyBundleHasNoFindings(unittest.TestCase):
     def test_canonical_healthy_bundle_is_clean(self):
         ids = scan_rule_ids(healthy())

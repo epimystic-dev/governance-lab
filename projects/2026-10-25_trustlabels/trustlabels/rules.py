@@ -8,7 +8,7 @@ passed through.
 
 Rules
 -----
-Thirteen rules under the prefix ``TL-``. Each one is documented in the
+Fourteen rules under the prefix ``TL-``. Each one is documented in the
 project README; the shared contract test asserts every registry id
 appears there.
 """
@@ -181,6 +181,23 @@ ALL_RULES: List[Rule] = [
             "observed:*) before use as grounds. Without this rule, "
             "a single-step mid-chain promotion silently escapes "
             "TL-001 / TL-009."
+        ),
+    ),
+    Rule(
+        id="TL-014",
+        severity=Severity.HIGH,
+        title="grounds_for_action is set but not a boolean",
+        description=(
+            "grounds_for_action must be a JSON boolean (true or "
+            "false). An entry that sets it to a string, number, "
+            "list, object, or null bypasses TL-001 / TL-009 "
+            "(whose guard is 'grounds is True', a strict boolean "
+            "match) while still looking declared to TL-008 (which "
+            "only fires on absence). A downstream reader doing "
+            "`if entry.get('grounds_for_action'):` reads a truthy "
+            "non-boolean as grounds, so a quarantined entry with "
+            "grounds_for_action='yes' is a type-confusion path to "
+            "the exact outcome TL-001 is meant to refuse."
         ),
     ),
 ]
@@ -403,6 +420,22 @@ def scan(bundle: Any) -> ScanResult:
             findings.append(_hit(
                 "TL-008",
                 f"entry {_q(eid)} does not declare grounds_for_action",
+                where,
+            ))
+
+        # TL-014: grounds_for_action present but not a boolean. Fires
+        # on any non-bool value (string, int, list, dict, null). The
+        # strict-bool guard in TL-001 / TL-009 means a truthy string
+        # bypasses the HIGH semantic rules while a downstream reader
+        # using Python-style truthiness would still read it as grounds,
+        # so a type violation here is itself a HIGH-severity attack
+        # path and must not be masked by TL-008 (which fires only on
+        # absence).
+        elif not isinstance(grounds, bool):
+            findings.append(_hit(
+                "TL-014",
+                f"entry {_q(eid)} grounds_for_action={_q(grounds)} is "
+                f"not a boolean (type: {type(grounds).__name__})",
                 where,
             ))
 
