@@ -1,0 +1,13 @@
+{
+  "name": "rungtag",
+  "slug": "2026-10-25_rungtag",
+  "kind": "linter",
+  "one_liner": "A linter for reasoning-depth tag presence and consistency over text streams: catches substantive blocks that fail to declare a tag, iterated tags claimed with no checker named, Pearl-ladder rung dimensions claimed without the base they extend, and overclaims on short blocks.",
+  "problem": "Chain-of-thought faithfulness and reasoning-depth-tag discipline is a 2026 research cluster (FaithCoT-Bench ICLR 2026; arXiv 2603.26410 'Why Models Know But Don't Say'; arXiv 2605.24286 'Faithfulness as Information Flow'; arXiv 2603.22816 'Measuring and curing reasoning rigidity'): a reasoning model routinely emits a plausible-looking trace that does not match the computation that produced the answer. One pragmatic mitigation is a reasoning-depth tag discipline - the host asks a worker to name the depth of reasoning it just did (normal / reasoning / iterated / reasoning-iterated), with the Pearl ladder rung dimension (rung-1 / rung-2 / rung-3) layered on top when honestly known. envelope's ENV-002 enforces this at the structured-JSON return-surface layer. rungtag enforces it at the free-text layer: scan a markdown or plain-text transcript, flag substantive blocks that fail to tag, iterated claims that name no checker, rung-3 claims that omit the iterated loop that could cause-check them, malformed tag syntax, and overclaims on blocks too short to require the depth they claim.",
+  "language": "python",
+  "test_cmd": "python -m unittest discover -s tests",
+  "build_cmd": "python -m pip install -e .",
+  "deps": [],
+  "license": "Apache-2.0",
+  "clean_room": "The tag taxonomy (normal / reasoning / iterated / reasoning-iterated) and the rung dimension (rung-1 associative / rung-2 interventional / rung-3 counterfactual) are drawn from the small vocabulary that appears in several publicly documented reasoning-depth-tag conventions and the parallel reasoning-depth-tag vocabulary in the FaithCoT-Bench public materials (ICLR 2026). The rung ladder itself is cited to Pearl, 'The Book of Why', chapter 1. The faithfulness motivation (reasoning depth that does not match the computation) is converged in arXiv 2603.26410, arXiv 2605.24286, arXiv 2603.22816, and the ICLR 2026 FaithCoT-Bench paper and benchmark. No reference implementation from any named repository was read, vendored, or mirrored."
+}
