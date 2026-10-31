@@ -186,18 +186,16 @@ def scan(
     blocks = split_blocks(text)
     findings: List[Finding] = []
 
-    # Pass 1: record which block indices are tagged as the checker.
-    checker_block_indices = set()
-    for b in blocks:
-        for h in b.headers:
-            if h.key == "tag":
-                pt = parse_tag(h.value)
-                if pt.primary in ("iterated", "reasoning-iterated"):
-                    # not itself a checker; skip
-                    pass
-                # A block tagged with checker_role has a checker named
-                if b.title and "checker" in b.title.lower():
-                    checker_block_indices.add(b.index)
+    # Pass 1: register blocks that explicitly declare a checker role.
+    # Only a declarative `checker_role:` header counts; a block title
+    # that merely contains the substring "checker" is prose and is
+    # attacker-controllable (an input can neutralise RT-002 globally
+    # just by titling a decorative block "## Checker: ...").
+    checker_block_indices = {
+        b.index
+        for b in blocks
+        if any(h.key == "checker_role" for h in b.headers)
+    }
 
     for b in blocks:
         where = f"block[{b.index}]"

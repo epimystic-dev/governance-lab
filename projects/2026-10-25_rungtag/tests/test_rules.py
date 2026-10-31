@@ -44,6 +44,48 @@ class RT002_IteratedWithoutChecker(unittest.TestCase):
         )
         self.assertNotIn("RT-002", scan_rule_ids(text))
 
+    def test_fires_when_only_signal_is_decorative_title(self):
+        # Regression: a decorative sibling block whose only tie to
+        # checking is the substring "checker" in its H2 title must
+        # NOT suppress RT-002. A real sibling checker declares a
+        # checker_role: header.
+        text = (
+            "## Analysis\n"
+            "tag: (reasoning, iterated)\n"
+            "\n"
+            + ("Substantive block that claims a maker-checker loop ran, "
+               "but the block never names a checker and no header is "
+               "attached. The point of RT-002 is to flag exactly this. "
+               * 3)
+            + "\n\n"
+            + "## Checker: never happened\n"
+            + "tag: (normal)\n"
+            + "\n"
+            + "A short unrelated note whose only tie to checking is "
+            + "the word in its title.\n"
+        )
+        self.assertIn("RT-002", scan_rule_ids(text))
+
+    def test_quiet_when_sibling_block_declares_checker_role(self):
+        # A sibling block that carries a `checker_role:` header IS
+        # a declarative sibling-checker signal and suppresses RT-002
+        # (preserves the existing permissive-sibling design).
+        text = (
+            "## Analysis\n"
+            "tag: (reasoning, iterated)\n"
+            "\n"
+            + ("Substantive block that claims iterated without its "
+               "own checker header, but there is a sibling checker "
+               "block below. " * 4)
+            + "\n\n"
+            + "## Review\n"
+            + "tag: (normal)\n"
+            + "checker_role: reviewer\n"
+            + "\n"
+            + "A review block that declares the checker role.\n"
+        )
+        self.assertNotIn("RT-002", scan_rule_ids(text))
+
 
 class RT003_Malformed(unittest.TestCase):
     def test_fires_without_parens(self):
